@@ -16,7 +16,7 @@ pandas = "^1.0.1"
 python = "^3.7"
 ratelimit = "^2.2.1"
 requests = "^2.23.0"
-sqlalchemy = "^1.3.13"
+sqlalchemy = "~1.3.13"
 sqlparse = "^0.3.1"
 strictyaml = "^1.0.6"
 

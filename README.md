@@ -97,20 +97,23 @@ Now we can instantiate our snaps as connected nodes in a graph.
 Note, we leverage the existing `extract_charges` snap of the `snapflow-stripe` module.
 
 ```python
-from snapflow import run, Graph
+from snapflow import run, graph_from_yaml
 
-g = Graph.from_yaml(
+g = graph_from_yaml(
 """
 nodes:
   - name: stripe_charges
     snap: stripe.extract_charges
     params:
       api_key: *****
-    accumulate: true
+  - key: accumulated_stripe_charges
+    snap: core.dataframe_accumulator
+    inputs:
+      - stripe_charges
   - name: stripe_customer_lifetime_sales
     snap: customer_lifetime_sales
     inputs:
-      - stripe_charges
+      - accumulated_stripe_charges
 """)
 
 print(g)

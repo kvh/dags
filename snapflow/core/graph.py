@@ -22,6 +22,7 @@ from snapflow.core.snap import SnapLike
 from snapflow.utils.common import md5_hash, remove_dupes
 from sqlalchemy import Column, String
 from sqlalchemy.sql.sqltypes import JSON
+import strictyaml as yaml
 
 if TYPE_CHECKING:
     from snapflow import Environment
@@ -37,9 +38,7 @@ class GraphMetadata(BaseModel):
     adjacency = Column(JSON)
 
     def __repr__(self) -> str:
-        return self._repr(
-            hash=self.hash,
-        )
+        return self._repr(hash=self.hash,)
 
 
 class DeclaredGraph:
@@ -237,3 +236,29 @@ class Graph:
     def get_all_nodes_in_execution_order(self) -> List[Node]:
         g = self.as_nx_graph()
         return [self.get_node(name) for name in nx.topological_sort(g)]
+
+
+def load_graph_from_dict(raw_graph: Dict[str, Any]) -> DeclaredGraph:
+    """
+    nodes:
+      - key: node1
+        snap: core.extract_csv
+        output_dataset_name: csv1
+        inputs:
+          - input1
+        params:
+          path: "****"
+    """
+    raw_nodes = raw_graph["nodes"]
+    g = DeclaredGraph()
+    for r in raw_nodes:
+        g.node(**r)
+    return g
+
+
+def graph_from_yaml(yml: str) -> DeclaredGraph:
+    d = yaml.load(yml).data
+    if isinstance(d, list):
+        d = {"nodes": d}
+    assert isinstance(d, dict)
+    return load_graph_from_dict(d)
