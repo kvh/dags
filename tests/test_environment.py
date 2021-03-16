@@ -8,7 +8,7 @@ def test_env_init():
     from . import _test_module
 
     # Test module / components
-    env = Environment("_test", metadata_storage="sqlite://", initial_modules=[])
+    env = Environment("_test", metadata_storage="sqlite://", modules=[])
     with env.session_scope() as sess:
         assert len(env.get_module_order()) == 1
         env.add_module(_test_module)

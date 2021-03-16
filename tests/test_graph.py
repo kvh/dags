@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from snapflow.core.graph import Graph
+from snapflow.core.graph import Graph, graph_from_yaml
 from snapflow.modules import core
 from tests.utils import (
     make_test_env,
@@ -72,23 +72,37 @@ def test_make_graph():
     assert len(g.get_all_nodes_in_execution_order()) == len(nodes)
     execution_order = [n.key for n in g.get_all_nodes_in_execution_order()]
     expected_orderings = [
-        [
-            "node2",
-            "node4",
-            "node5",
-        ],
-        [
-            "node2",
-            "node4",
-            "node6",
-        ],
-        [
-            "node1",
-            "node3",
-            "node7",
-        ],
+        ["node2", "node4", "node5",],
+        ["node2", "node4", "node6",],
+        ["node1", "node3", "node7",],
     ]
     # TODO: graph sort not stable!
     for ordering in expected_orderings:
         for i, n in enumerate(ordering[:-1]):
             assert execution_order.index(n) < execution_order.index(ordering[i + 1])
+
+
+def test_graph_from_yaml():
+    g = graph_from_yaml(
+        """
+    nodes:
+      - key: stripe_charges
+        snap: stripe.extract_charges
+        params:
+          api_key: "*****"
+      - key: accumulated_stripe_charges
+        snap: core.dataframe_accumulator
+        inputs:
+          - stripe_charges
+      - key: stripe_customer_lifetime_sales
+        snap: customer_lifetime_sales
+        inputs:
+          - accumulated_stripe_charges
+    """
+    )
+    assert len(list(g.all_nodes())) == 3
+    assert g.get_node("stripe_charges").params == {"api_key": "*****"}
+    assert g.get_node("accumulated_stripe_charges").inputs == ["stripe_charges"]
+    assert g.get_node("stripe_customer_lifetime_sales").inputs == [
+        "accumulated_stripe_charges"
+    ]

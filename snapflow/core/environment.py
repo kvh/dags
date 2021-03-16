@@ -60,7 +60,7 @@ class Environment:
         name: str = None,
         metadata_storage: Union["Storage", str] = None,
         add_default_python_runtime: bool = True,
-        initial_modules: List[SnapflowModule] = None,  # Defaults to `core` module
+        modules: List[SnapflowModule] = None,  # Defaults to `core` module
         initialize_metadata_storage: bool = True,
         config: Optional[EnvironmentConfiguration] = None,
         raise_on_error: bool = False,
@@ -100,9 +100,9 @@ class Environment:
         #             runtime_engine=LocalPythonRuntimeEngine,
         #         )
         #     )
-        if initial_modules is None:
-            initial_modules = [core]
-        for m in initial_modules:
+        if modules is None:
+            modules = [core]
+        for m in modules:
             self.add_module(m)
 
         self._local_python_storage = new_local_python_storage()
@@ -387,8 +387,8 @@ class Environment:
             for node in nodes:
                 em.execute(node, to_exhaustion=to_exhaustion)
 
-    def latest_output(self, node: NodeLike) -> Optional[DataBlock]:
-        sess = self._get_new_metadata_session()  # hanging session
+    def get_latest_output(self, node: NodeLike) -> Optional[DataBlock]:
+        sess = self._get_new_metadata_session()  # TODO: hanging session
         n, g = self._get_graph_and_node(node)
         ctx = self.get_run_context(g)
         return n.latest_output(ctx, sess)
@@ -524,13 +524,21 @@ def run_graph(
     env: Optional[Environment] = None,
     modules: Optional[List[SnapflowModule]] = None,
     **kwargs: Any,
-):
+) -> Optional[DataBlock]:
     if env is None:
         env = Environment()
     if modules is not None:
         for module in modules:
             env.add_module(module)
     return env.run_graph(*args, **kwargs)
+
+
+def run(
+    node_or_graph: Union[NodeLike, DeclaredGraph, Graph], *args, **kwargs
+) -> Optional[DataBlock]:
+    if isinstance(node_or_graph, Graph) or isinstance(node_or_graph, DeclaredGraph):
+        return run_graph(node_or_graph, *args, **kwargs)
+    return run_node(node_or_graph, *args, **kwargs)
 
 
 # def load_environment_from_yaml(yml) -> Environment:

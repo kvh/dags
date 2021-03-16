@@ -171,7 +171,7 @@ def test_repeated_runs():
     records = output.as_records()
     assert records == expected_records
     # Test latest_output
-    output = env.latest_output(metrics)
+    output = env.get_latest_output(metrics)
     records = output.as_records()
     assert records == expected_records
     # Run again, should be exhausted

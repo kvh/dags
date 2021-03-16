@@ -102,7 +102,7 @@ from snapflow import run, graph_from_yaml
 g = graph_from_yaml(
 """
 nodes:
-  - name: stripe_charges
+  - key: stripe_charges
     snap: stripe.extract_charges
     params:
       api_key: *****
@@ -110,7 +110,7 @@ nodes:
     snap: core.dataframe_accumulator
     inputs:
       - stripe_charges
-  - name: stripe_customer_lifetime_sales
+  - key: stripe_customer_lifetime_sales
     snap: customer_lifetime_sales
     inputs:
       - accumulated_stripe_charges
