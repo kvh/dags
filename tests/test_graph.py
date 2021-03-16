@@ -102,7 +102,8 @@ def test_graph_from_yaml():
     )
     assert len(list(g.all_nodes())) == 3
     assert g.get_node("stripe_charges").params == {"api_key": "*****"}
-    assert g.get_node("accumulated_stripe_charges").inputs == ["stripe_charges"]
-    assert g.get_node("stripe_customer_lifetime_sales").inputs == [
-        "accumulated_stripe_charges"
-    ]
+    assert g.get_node("accumulated_stripe_charges").inputs == "stripe_charges"
+    assert (
+        g.get_node("stripe_customer_lifetime_sales").inputs
+        == "accumulated_stripe_charges"
+    )

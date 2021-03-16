@@ -245,13 +245,28 @@ def load_graph_from_dict(raw_graph: Dict[str, Any]) -> DeclaredGraph:
         snap: core.extract_csv
         output_dataset_name: csv1
         inputs:
-          - input1
+          input: othernode
         params:
           path: "****"
     """
     raw_nodes = raw_graph["nodes"]
     g = DeclaredGraph()
     for r in raw_nodes:
+        inputs = r.pop("inputs", None)
+        inpt = r.pop("inpt", None)
+        if inputs and inpt:
+            raise ValueError("Can't specify both `inputs` and `input`")
+        elif inputs:
+            if isinstance(inputs, list):
+                assert len(inputs) == 1
+                r["input"] = inputs[0]
+            elif isinstance(inputs, dict):
+                r["inputs"] = inputs
+            else:
+                raise TypeError(inputs)
+        elif inpt:
+            assert isinstance(inpt, str)
+            r["input"] = inpt
         g.node(**r)
     return g
 
