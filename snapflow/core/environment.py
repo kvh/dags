@@ -65,6 +65,7 @@ class Environment:
         config: Optional[EnvironmentConfiguration] = None,
         raise_on_error: bool = False,
         settings: Dict[str, Any] = None,
+        default_modules: List[SnapflowModule] = None,
     ):
         from snapflow.core.runtime import Runtime, LocalPythonRuntimeEngine
         from snapflow.storage.storage import Storage, new_local_python_storage
@@ -100,8 +101,9 @@ class Environment:
         #             runtime_engine=LocalPythonRuntimeEngine,
         #         )
         #     )
-        if modules is None:
-            modules = [core]
+        if default_modules is None:
+            default_modules = [core]
+        modules = default_modules + (modules or [])
         for m in modules:
             self.add_module(m)
 
