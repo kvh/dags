@@ -536,6 +536,8 @@ def run_graph(
 def run(
     node_or_graph: Union[NodeLike, DeclaredGraph, Graph], *args, **kwargs
 ) -> Optional[DataBlock]:
+    from snapflow.core.graph import Graph, DeclaredGraph
+
     if isinstance(node_or_graph, Graph) or isinstance(node_or_graph, DeclaredGraph):
         return run_graph(node_or_graph, *args, **kwargs)
     return run_node(node_or_graph, *args, **kwargs)
