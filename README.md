@@ -70,7 +70,7 @@ Install core library and the Stripe module:
 
 `pip install snapflow snapflow-stripe`
 
-Define our own snap:
+Define a snap:
 
 ```python
 from snapflow import Snap
@@ -105,27 +105,29 @@ nodes:
   - key: stripe_charges
     snap: stripe.extract_charges
     params:
-      api_key: *****
+      api_key: sk_test_4eC39HqLyjWDarjtT1zdp7dc
   - key: accumulated_stripe_charges
     snap: core.dataframe_accumulator
-    inputs:
-      - stripe_charges
+    input: stripe_charges
   - key: stripe_customer_lifetime_sales
     snap: customer_lifetime_sales
-    inputs:
-      - accumulated_stripe_charges
+    input: accumulated_stripe_charge
 """)
 
 print(g)
 ```
 
-Then run the graph once to exhaustion, and print out the final output:
+Then run the graph once (limited for demo) and print out the final output:
 
 ```python
-run(g)
+from snapflow import Environment
+import snapflow_stripe as stripe
+
+env = Environment(modules=[stripe])
+run(g, env=env, node_timeout_seconds=5)
 
 # Get the final output block
-datablock = g.get_node("stripe_customer_lifetime_sales").get_latest_output()
+datablock = env.get_latest_output("stripe_customer_lifetime_sales")
 print(datablock.as_dataframe())
 ```
 

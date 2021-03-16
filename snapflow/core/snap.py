@@ -7,7 +7,11 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Type, Uni
 
 from pandas import DataFrame
 from snapflow.core.data_block import DataBlock, DataBlockMetadata
-from snapflow.core.module import DEFAULT_LOCAL_MODULE, SnapflowModule
+from snapflow.core.module import (
+    DEFAULT_LOCAL_MODULE,
+    DEFAULT_LOCAL_MODULE_NAME,
+    SnapflowModule,
+)
 from snapflow.core.runtime import DatabaseRuntimeClass, PythonRuntimeClass, RuntimeClass
 from snapflow.core.snap_interface import (
     DeclaredInput,
@@ -35,11 +39,7 @@ class InputExhaustedException(SnapException):
 SnapCallable = Callable[..., Any]
 
 DataInterfaceType = Union[
-    DataFrame,
-    Records,
-    DatabaseTableRef,
-    DataBlockMetadata,
-    DataBlock,
+    DataFrame, Records, DatabaseTableRef, DataBlockMetadata, DataBlock,
 ]  # TODO: also input...?   Isn't this duplicated with the Interface list AND with DataFormats?
 
 
@@ -167,7 +167,7 @@ def snap_factory(
         compatible_runtime_classes = (
             [runtime_class] if runtime_class else snap_like.compatible_runtime_classes
         )
-        return _Snap(
+        snap = _Snap(
             name=name,
             module_name=module_name,
             snap_callable=snap_like.snap_callable,
@@ -179,14 +179,18 @@ def snap_factory(
             ignore_signature=kwargs.get("ignore_signature")
             or snap_like.ignore_signature,
         )
-
-    return _Snap(
-        name=name,
-        module_name=module_name,
-        snap_callable=snap_like,
-        compatible_runtime_classes=[runtime_class],
-        **kwargs,
-    )
+    else:
+        snap = _Snap(
+            name=name,
+            module_name=module_name,
+            snap_callable=snap_like,
+            compatible_runtime_classes=[runtime_class],
+            **kwargs,
+        )
+    if module_name == DEFAULT_LOCAL_MODULE_NAME:
+        # Add to default module
+        DEFAULT_LOCAL_MODULE.add_snap(snap)
+    return snap
 
 
 def snap_decorator(
@@ -282,11 +286,7 @@ def add_param_decorator(
     help: str = "",
 ):
     p = Parameter(
-        name=name,
-        datatype=datatype,
-        required=required,
-        default=default,
-        help=help,
+        name=name, datatype=datatype, required=required, default=default, help=help,
     )
 
     def dec(snap_like: Union[SnapCallable, _Snap]) -> _Snap:
