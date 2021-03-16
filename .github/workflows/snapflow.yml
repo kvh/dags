@@ -38,4 +38,4 @@ jobs:
           poetry add snapflow-stripe
       - name: Test readme example
         run: |
-          poetry run python snapflow/examples/readme.py
+          poetry run python examples/readme.py
